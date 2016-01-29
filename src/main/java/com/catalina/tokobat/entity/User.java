@@ -17,29 +17,25 @@ public class User {
     @Column(name = "id")
     private long id;
 
-    @Column(name = "username", nullable = true, unique = true)
-    private String username;
+    @Column(name = "msisdn", nullable = true, unique = true)
+    private String msisdn;
+
+    @Column(name = "UID", nullable = true)
+    private String uid;
 
     @Column(name = "name", nullable = true)
     private String name;
 
-    @Column(name = "hash")
-    private String hash;
-
-    @Column(name = "salt")
-    private String salt;
-
-    @Column(name = "status")
-    private Integer status;
+    @Column(name = "session")
+    private String session;
 
     @Column(name = "date_create")
     @Temporal(TemporalType.TIMESTAMP)
-    private Calendar dateJoin;
+    private Calendar dateCreate;
 
     @PrePersist
     protected void onCreate() {
-        dateJoin = Calendar.getInstance();
-        status=1;
+        dateCreate = Calendar.getInstance();
     }
 
     /* Constructor */
@@ -47,13 +43,12 @@ public class User {
 
     }
 
-    public User(long id, String name, String username) {
-        this.id = id;
+    public User(String msisdn, String name, String uid) {
+        this.msisdn = msisdn;
         this.name = name;
-        this.username = username;
+        this.uid = uid;
     }
 
-    /* Getter and Setter */
     public long getId() {
         return id;
     }
@@ -62,12 +57,20 @@ public class User {
         this.id = id;
     }
 
-    public String getUsername() {
-        return username;
+    public String getMsisdn() {
+        return msisdn;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setMsisdn(String msisdn) {
+        this.msisdn = msisdn;
+    }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
     }
 
     public String getName() {
@@ -78,35 +81,20 @@ public class User {
         this.name = name;
     }
 
-    public Calendar getDateJoin() {
-        return dateJoin;
+    public String getSession() {
+        return session;
     }
 
-    public void setDateJoin(Calendar dateJoin) {
-        this.dateJoin = dateJoin;
+    public void setSession(String session) {
+        this.session = session;
     }
 
-    public Integer getStatus() {
-        return status;
+
+    public Calendar getDateCreate() {
+        return dateCreate;
     }
 
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
-
-    public String getHash() {
-        return hash;
-    }
-
-    public void setHash(String hash) {
-        this.hash = hash;
-    }
-
-    public String getSalt() {
-        return salt;
-    }
-
-    public void setSalt(String salt) {
-        this.salt = salt;
+    public void setDateCreate(Calendar dateCreate) {
+        this.dateCreate = dateCreate;
     }
 }

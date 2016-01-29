@@ -49,14 +49,10 @@
     </bean>
     
     <bean class="org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor" />
-	<!--
 
-	<bean id="userDAO" class="com.bp.dao.UserDaoImpl"/>
-    <bean id="categoryDAO" class="com.bp.dao.CategoryDaoImpl"/>
-    <bean id="locationDAO" class="com.bp.dao.LocationDaoImpl"/>
-    <bean id="checkinDAO" class="com.bp.dao.CheckInDaoImpl"/>
-    <bean id="ratingDAO" class="com.bp.dao.RatingDaoImpl"/>
-    <bean id="historyDAO" class="com.bp.dao.HistoryDaoImpl"/> -->
+
+	<bean id="userDAO" class="com.catalina.tokobat.dao.UserDaoImpl"/>
+
 
 
 </beans>

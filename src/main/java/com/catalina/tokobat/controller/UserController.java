@@ -1,6 +1,8 @@
 package com.catalina.tokobat.controller;
 
 
+import com.catalina.tokobat.dao.UserDao;
+import com.catalina.tokobat.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -22,24 +24,43 @@ public class UserController {
 
     private static Logger log = LoggerFactory.getLogger(UserController.class);
 
+    @Inject
+    private UserDao userDAO;
+
+    @RequestMapping(method=RequestMethod.GET, value="/{userId}")
+    public @ResponseBody
+    User getUser (@PathVariable(value="userId") long userId, Model model) {
+
+        log.info("Searching for user with id = " + userId);
+
+        User user = userDAO.getUserById(userId);
+        return user;
+    }
+
     @RequestMapping(method=RequestMethod.GET, value="/list")
-    public @ResponseBody String getAllUser (Model model) {
+    public @ResponseBody List<User> getAllUser (Model model) {
 
         log.info("Searching for all user");
 
-        String test = "hello catalina!";
+        List<User> users = userDAO.getAllUser();
 
-        return test;
+        return users;
     }
 
-    @RequestMapping("/welcome")
-    public ModelAndView helloWorld() {
+    @RequestMapping(method = RequestMethod.POST, value = "/add")
+    public @ResponseBody
+    User addUser(@RequestParam(value = "msisdn") String msisdn ,  @RequestParam(value = "uid") String uid,  @RequestParam(value = "name") String name, Model model) {
+        log.info("new user  " + msisdn + " name = " + name);
 
-        String message = "<br><div style='text-align:center;'>"
-                + "<h3>********** Hello Calalina **********</div><br><br>";
-        return new ModelAndView("welcome", "message", message);
+        SecureRandom random = new SecureRandom();
+
+        User user = new User();
+        user.setName(name);
+        user.setMsisdn(msisdn);
+        user.setUid(uid);
+
+        user = userDAO.addNewUser(user);
+        return user;
     }
-
-
 
 }
