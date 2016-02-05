@@ -2,11 +2,11 @@ package com.catalina.tokobat.controller;
 
 import com.catalina.tokobat.common.Constants;
 import com.catalina.tokobat.dao.UserDao;
+import com.catalina.tokobat.entity.User;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
 import javax.inject.Inject;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
@@ -25,7 +25,7 @@ import org.springframework.web.client.RestTemplate;
 @Controller
 @RequestMapping(value="/login")
 public class LoginController {
-    private static Logger log = LoggerFactory.getLogger(LoginController.class);
+    private static final Logger log = LoggerFactory.getLogger(LoginController.class);
     
     @Inject
     private UserDao userDAO;
@@ -36,7 +36,6 @@ public class LoginController {
             @RequestParam(value = "msisdn") String msisdn,
             @RequestParam(value = "credentials") String credentials) {
         
-        log.info("masuk");
         Map<String, String> params = new HashMap<>();
         params.put("uid", uid);
         params.put("msisdn", msisdn);
@@ -52,21 +51,29 @@ public class LoginController {
         LoginResponse res;
         try {
             res = mapper.readValue(respon, LoginResponse.class);
-            
-            if (res.getStatus().equals(LoginResponse.LOGIN_VALID)) {
-                //TODO: get user by msisdn, save token and uid
-                log.info("Login valid");
-            } else if (res.getStatus().equals(LoginResponse.LOGIN_INVALID)) {
-                log.info("Login invalid");
+            User user = userDAO.getUserByMsisdn(msisdn);
+            switch (res.getStatus()) {
+                case LoginResponse.LOGIN_VALID:
+                    user.setSession(res.getToken());
+                    user.setUid(uid);
+                    userDAO.updateUser(user);
+                    log.info("Login " + user.getId() + " valid");
+                    break;
+                case LoginResponse.LOGIN_INVALID:
+                    log.info("Login " + user.getId() + " invalid");
+                    break;
+                case LoginResponse.LOGIN_BLOCKED:
+                    log.info("Login " + user.getId() + " blocked");
+                    break;
             }
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             res = new LoginResponse();
-            java.util.logging.Logger.getLogger(LoginController.class.getName()).log(Level.SEVERE, null, ex);
+            log.error(null, ex);
         }
         return res;
     }
     
-    private class LoginResponse implements Serializable{
+    public static class LoginResponse implements Serializable {
         private String msisdn;
         private String status;
         private String token;
@@ -100,7 +107,6 @@ public class LoginController {
 
         public void setToken(String token) {
             this.token = token;
-        }
-                
+        }                
     }
 }

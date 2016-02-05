@@ -15,8 +15,7 @@ import java.util.List;
 public class UserDaoImpl extends JpaDaoSupport implements UserDao {
 
     @PersistenceContext
-    private EntityManager em;
-    
+    private EntityManager em;    
     
 
     @Override
@@ -54,8 +53,13 @@ public class UserDaoImpl extends JpaDaoSupport implements UserDao {
     }
 
     @Override
-    public User getUserByMsisdn(String msisdn) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public User getUserByMsisdn(String msisdn) throws Exception {
+        List<User> users = getJpaTemplate().find(
+                "from User u where u.msisdn=?", msisdn);
+        if (users.isEmpty()) {
+            String msg = "User with msisdn = " + msisdn + " not found";
+            throw new Exception(msg);
+        }
+        return users.get(0);
     }
-
 }
