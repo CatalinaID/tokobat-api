@@ -10,4 +10,7 @@ public final class Constants {
 
     public static final String DEFAULT_SUCCESS = "OK";
     public static final String DEFAULT_FAIL = "FAIL";
+    
+    public static final String ECASH_URI = "https://api.apim.ibmcloud.com"
+            + "/ex-icha-fmeirisidibmcom-ecash-be/sb/emoney/v1";    
 }

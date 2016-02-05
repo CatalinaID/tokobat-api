@@ -12,4 +12,5 @@ public interface UserDao {
     User getUserById(Long id);
     User addNewUser(User user);
     User updateUser(User user);
+    User getUserByMsisdn(String msisdn);
 }

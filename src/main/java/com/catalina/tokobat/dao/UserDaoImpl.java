@@ -16,6 +16,8 @@ public class UserDaoImpl extends JpaDaoSupport implements UserDao {
 
     @PersistenceContext
     private EntityManager em;
+    
+    
 
     @Override
     public List<User> getAllUser() {
@@ -49,6 +51,11 @@ public class UserDaoImpl extends JpaDaoSupport implements UserDao {
         em.close();
 
         return user;
+    }
+
+    @Override
+    public User getUserByMsisdn(String msisdn) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }
