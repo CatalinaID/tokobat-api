@@ -52,6 +52,7 @@
 
 
 	<bean id="userDAO" class="com.catalina.tokobat.dao.UserDaoImpl"/>
+    <bean id="apotekDAO" class="com.catalina.tokobat.dao.ApotekDaoImpl"/>
 
 
 

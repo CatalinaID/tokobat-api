@@ -18,6 +18,9 @@ public class Apotek {
     @Column(name = "id")
     private long id;
 
+    @Column(name = "username", nullable = true, unique = true)
+    private String username;
+
     @Column(name = "name", nullable = true)
     private String name;
 
@@ -51,6 +54,14 @@ public class Apotek {
     /* Constructor */
     public Apotek() {
 
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public long getId() {

@@ -62,5 +62,22 @@ public class UserController {
         user = userDAO.addNewUser(user);
         return user;
     }
+/*
+    @RequestMapping(method = RequestMethod.POST, value = "/register")
+    public @ResponseBody
+    User registerName(@RequestParam(value = "name") String name,
+                      @RequestParam(value = "msisdn") String msisdn,
+                      Model model) {
+        log.info("register msisdn  " + msisdn + " name = " + name);
+
+        try {
+            User user = userDAO.getUserByMsisdn(msisdn);
+            user.setName(name);
+            user = userDAO.updateUser(user);
+            return user;
+        } catch (Exception e) {
+
+        }
+    } */
 
 }

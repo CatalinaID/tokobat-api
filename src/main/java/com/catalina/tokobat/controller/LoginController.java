@@ -77,7 +77,7 @@ public class LoginController {
         private String msisdn;
         private String status;
         private String token;
-        
+
         public static final String LOGIN_VALID = "VALID";
         public static final String LOGIN_INVALID = "INVALID";
         public static final String LOGIN_BLOCKED = "BLOCKED";
@@ -107,6 +107,6 @@ public class LoginController {
 
         public void setToken(String token) {
             this.token = token;
-        }                
+        }
     }
 }
