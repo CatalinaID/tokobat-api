@@ -1,19 +1,20 @@
 package com.catalina.tokobat.controller;
 
 
+import com.catalina.tokobat.common.Constants;
 import com.catalina.tokobat.dao.UserDao;
+import com.catalina.tokobat.dto.UserLoginResponse;
 import com.catalina.tokobat.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
 
 import javax.inject.Inject;
-import java.math.BigInteger;
-import java.security.SecureRandom;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * Created by Alifa on 3/12/2015.
@@ -26,42 +27,7 @@ public class UserController {
 
     @Inject
     private UserDao userDAO;
-
-    @RequestMapping(method=RequestMethod.GET, value="/{userId}")
-    public @ResponseBody
-    User getUser (@PathVariable(value="userId") long userId, Model model) {
-
-        log.info("Searching for user with id = " + userId);
-
-        User user = userDAO.getUserById(userId);
-        return user;
-    }
-
-    @RequestMapping(method=RequestMethod.GET, value="/list")
-    public @ResponseBody List<User> getAllUser (Model model) {
-
-        log.info("Searching for all user");
-
-        List<User> users = userDAO.getAllUser();
-
-        return users;
-    }
-
-    @RequestMapping(method = RequestMethod.POST, value = "/add")
-    public @ResponseBody
-    User addUser(@RequestParam(value = "msisdn") String msisdn ,  @RequestParam(value = "uid") String uid,  @RequestParam(value = "name") String name, Model model) {
-        log.info("new user  " + msisdn + " name = " + name);
-
-        SecureRandom random = new SecureRandom();
-
-        User user = new User();
-        user.setName(name);
-        user.setMsisdn(msisdn);
-        user.setUid(uid);
-
-        user = userDAO.addNewUser(user);
-        return user;
-    }
+    
 /*
     @RequestMapping(method = RequestMethod.POST, value = "/register")
     public @ResponseBody
@@ -80,4 +46,48 @@ public class UserController {
         }
     } */
 
+    @RequestMapping(method=RequestMethod.GET, value = "/login")
+    public @ResponseBody UserLoginResponse login (
+            @RequestParam(value = "uid") String uid,
+            @RequestParam(value = "msisdn") String msisdn,
+            @RequestParam(value = "credentials") String credentials) {
+        
+        Map<String, String> params = new HashMap<>();
+        params.put("uid", uid);
+        params.put("msisdn", msisdn);
+        params.put("credentials", credentials);
+        
+        RestTemplate client = new RestTemplate();
+        
+        String respon = client.getForObject(Constants.ECASH_URI
+                + "/loginMember?"
+                + "uid={uid}&msisdn={msisdn}&credentials={credentials}", 
+                String.class, params);
+        ObjectMapper mapper = new ObjectMapper();
+        UserLoginResponse res;
+        try {
+            res = mapper.readValue(respon, UserLoginResponse.class);
+            User user = userDAO.getUserByMsisdn(msisdn);
+            res.setId(user.getId());
+            switch (res.getStatus()) {
+                case UserLoginResponse.LOGIN_VALID:
+                    user.setSession(res.getToken());
+                    user.setUid(uid);
+                    userDAO.updateUser(user);
+                    log.info("Login " + user.getId() + " valid");
+                    break;
+                case UserLoginResponse.LOGIN_INVALID:
+                    log.info("Login " + user.getId() + " invalid");
+                    break;
+                case UserLoginResponse.LOGIN_BLOCKED:
+                    log.info("Login " + user.getId() + " blocked");
+                    break;
+            }
+        } catch (Exception ex) {
+            res = new UserLoginResponse();
+            res.setMessage(ex.getMessage());
+            log.error(null, ex);
+        }
+        return res;
+    }
 }
