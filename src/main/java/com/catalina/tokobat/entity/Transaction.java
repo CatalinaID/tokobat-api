@@ -160,4 +160,11 @@ public class Transaction {
     public void setReadBy(boolean readBy) {
         this.readBy = readBy;
     }
+    
+    public static final String STATUS_WAITING = "WAITING";
+    public static final String STATUS_DECLINED = "DECLINED";
+    public static final String STATUS_ACCEPTED = "ACCEPTED";
+    public static final String STATUS_PAID = "PAID";
+    public static final String STATUS_READY = "READY";
+    public static final String STATUS_FINISHED = "FINISHED";
 }

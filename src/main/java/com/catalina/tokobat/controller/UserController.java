@@ -14,13 +14,15 @@ import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.Map;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 /**
  * Created by Alifa on 3/12/2015.
  */
 @Controller
-@RequestMapping(value="/user")
+@RequestMapping(value="/users")
 public class UserController {
 
     private static Logger log = LoggerFactory.getLogger(UserController.class);
@@ -46,8 +48,8 @@ public class UserController {
         }
     } */
 
-    @RequestMapping(method=RequestMethod.GET, value = "/login")
-    public @ResponseBody UserLoginResponse login (
+    @RequestMapping(method=RequestMethod.POST, value = "/login")
+    public ResponseEntity<UserLoginResponse> login (
             @RequestParam(value = "uid") String uid,
             @RequestParam(value = "msisdn") String msisdn,
             @RequestParam(value = "credentials") String credentials) {
@@ -58,16 +60,16 @@ public class UserController {
         params.put("credentials", credentials);
         
         RestTemplate client = new RestTemplate();
-        
-        String respon = client.getForObject(Constants.ECASH_URI
-                + "/loginMember?"
-                + "uid={uid}&msisdn={msisdn}&credentials={credentials}", 
-                String.class, params);
-        ObjectMapper mapper = new ObjectMapper();
         UserLoginResponse res;
+        
         try {
-            res = mapper.readValue(respon, UserLoginResponse.class);
             User user = userDAO.getUserByMsisdn(msisdn);
+            String respon = client.getForObject(Constants.ECASH_URI
+                    + "/loginMember?"
+                    + "uid={uid}&msisdn={msisdn}&credentials={credentials}", 
+                    String.class, params);
+            ObjectMapper mapper = new ObjectMapper();
+            res = mapper.readValue(respon, UserLoginResponse.class);
             res.setId(user.getId());
             switch (res.getStatus()) {
                 case UserLoginResponse.LOGIN_VALID:
@@ -86,8 +88,9 @@ public class UserController {
         } catch (Exception ex) {
             res = new UserLoginResponse();
             res.setMessage(ex.getMessage());
-            log.error(null, ex);
+            log.error(ex.getMessage());
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
-        return res;
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
 }
