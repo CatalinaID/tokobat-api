@@ -4,7 +4,7 @@ import com.catalina.tokobat.common.Constants;
 import com.catalina.tokobat.common.SHA1;
 import com.catalina.tokobat.dao.ApotekDao;
 import com.catalina.tokobat.dto.ApotekDto;
-import com.catalina.tokobat.dto.ApotekLoginResponse;
+import com.catalina.tokobat.dto.ApotekLoginDto;
 import com.catalina.tokobat.entity.Apotek;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +34,7 @@ public class ApotekController {
 
     @RequestMapping(method = RequestMethod.POST, value = "/login")
     public @ResponseBody
-    ApotekLoginResponse validate(
+    ApotekLoginDto validate(
             @RequestParam(value = "username") String username,
             @RequestParam(value = "password") String psswd, Model model) {
         log.info("validate user with id = " + username );
@@ -44,13 +44,13 @@ public class ApotekController {
             if (apotek != null) {
                 SHA1 sha1 = new SHA1(psswd+apotek.getSalt());
                 if (apotek.getHash().equals(sha1.hash())) {
-                    return new ApotekLoginResponse(Constants.SUCCESS_INDEX, "success", apotek.getId(), apotek.getName());
+                    return new ApotekLoginDto(Constants.SUCCESS_INDEX, "success", apotek.getId(), apotek.getName());
                 } else {
-                    return new ApotekLoginResponse(Constants.ERROR_INDEX, "invalid", apotek.getId(), apotek.getName());
+                    return new ApotekLoginDto(Constants.ERROR_INDEX, "invalid", apotek.getId(), apotek.getName());
                 }
             }
         }
-        return new ApotekLoginResponse(Constants.ERROR_INDEX, "error");
+        return new ApotekLoginDto(Constants.ERROR_INDEX, "error");
     }
 /*
     @RequestMapping(method = RequestMethod.POST, value = "/get")

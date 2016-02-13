@@ -1,7 +1,9 @@
 package com.catalina.tokobat.controller;
 
 
+import com.catalina.tokobat.common.Constants;
 import com.catalina.tokobat.dao.UserDao;
+import com.catalina.tokobat.dto.UserDto;
 import com.catalina.tokobat.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,10 +64,10 @@ public class UserController {
         user = userDAO.addNewUser(user);
         return user;
     }
-/*
+
     @RequestMapping(method = RequestMethod.POST, value = "/register")
     public @ResponseBody
-    User registerName(@RequestParam(value = "name") String name,
+    UserDto registerName(@RequestParam(value = "name") String name,
                       @RequestParam(value = "msisdn") String msisdn,
                       Model model) {
         log.info("register msisdn  " + msisdn + " name = " + name);
@@ -74,10 +76,13 @@ public class UserController {
             User user = userDAO.getUserByMsisdn(msisdn);
             user.setName(name);
             user = userDAO.updateUser(user);
-            return user;
+            UserDto userDto = new UserDto(Constants.DEFAULT_SUCCESS,user.getId(),user);
+            return userDto;
         } catch (Exception e) {
 
         }
-    } */
+        UserDto userDto = new UserDto(Constants.DEFAULT_FAIL,Constants.ERROR_INDEX);
+        return  userDto;
+    }
 
 }

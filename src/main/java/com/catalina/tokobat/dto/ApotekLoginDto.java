@@ -3,18 +3,18 @@ package com.catalina.tokobat.dto;
 /**
  * Created by Alifa on 2/7/2016.
  */
-public class ApotekLoginResponse extends ResponseDto {
+public class ApotekLoginDto extends ResponseDto {
     private long code;
     private String name;
 
-    public ApotekLoginResponse(long code, String message, long id, String name) {
+    public ApotekLoginDto(long code, String message, long id, String name) {
         this.code = code;
         this.message = message;
         this.id = id;
         this.name = name;
     }
 
-    public ApotekLoginResponse(long code, String message) {
+    public ApotekLoginDto(long code, String message) {
         this.code = code;
         this.message = message;
     }
