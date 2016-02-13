@@ -5,8 +5,8 @@ package com.catalina.tokobat.common;
  */
 public final class Constants {
     public static final String ERROR_MESSAGE = "Fail";
-    public static final Long ERROR_INDEX = 1L;
-    public static final Long SUCCESS_INDEX = 0L;
+    public static final Long ERROR_INDEX = 0L;
+    public static final Long SUCCESS_INDEX = 1L;
 
     public static final String DEFAULT_SUCCESS = "OK";
     public static final String DEFAULT_FAIL = "FAIL";

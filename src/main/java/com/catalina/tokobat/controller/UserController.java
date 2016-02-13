@@ -9,6 +9,7 @@ import com.catalina.tokobat.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.inject.Inject;
@@ -37,16 +38,17 @@ public class UserController {
     UserDto registerName(@RequestParam(value = "name") String name,
                       @RequestParam(value = "msisdn") String msisdn,
                       Model model) {
-        log.info("register msisdn  " + msisdn + " name = " + name);
 
         try {
+            log.info("register msisdn  " + msisdn + " name = " + name);
             User user = userDAO.getUserByMsisdn(msisdn);
             user.setName(name);
             user = userDAO.updateUser(user);
+            log.info("success register msisdn  " + user.getMsisdn() + " name = " + user.getName());
             UserDto userDto = new UserDto(Constants.DEFAULT_SUCCESS,user.getId(),user);
             return userDto;
         } catch (Exception e) {
-
+            UserDto userDto = new UserDto(e.getMessage(),Constants.ERROR_INDEX);
         }
         UserDto userDto = new UserDto(Constants.DEFAULT_FAIL,Constants.ERROR_INDEX);
         return  userDto;
