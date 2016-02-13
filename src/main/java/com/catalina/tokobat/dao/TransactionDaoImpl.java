@@ -9,8 +9,11 @@ import com.catalina.tokobat.entity.Transaction;
 import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+
+import com.catalina.tokobat.entity.User;
 import org.springframework.orm.jpa.EntityManagerFactoryUtils;
 import org.springframework.orm.jpa.support.JpaDaoSupport;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  *
@@ -27,6 +30,7 @@ public class TransactionDaoImpl extends JpaDaoSupport implements TransactionDao 
     }
 
     @Override
+    @Transactional(readOnly=false)
     public Transaction updateTransaction(Transaction trans) {
         em = EntityManagerFactoryUtils.getTransactionalEntityManager(getJpaTemplate().getEntityManagerFactory());
         em.merge(trans);

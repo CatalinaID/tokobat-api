@@ -57,6 +57,7 @@ public class Transaction {
     @PrePersist
     protected void onCreate() {
         dateCreate = Calendar.getInstance();
+        readBy = false;
         status="waiting";
     }
 

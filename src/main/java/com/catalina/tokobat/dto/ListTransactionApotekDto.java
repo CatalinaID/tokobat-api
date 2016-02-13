@@ -9,11 +9,11 @@ import java.util.List;
  *
  * @author icha
  */
-public class ListOrderApotekDto implements Serializable {
+public class ListTransactionApotekDto implements Serializable {
     public List<TransactionSummary> transactions;
     public int total;
     
-    public ListOrderApotekDto(List<Transaction> transList) {
+    public ListTransactionApotekDto(List<Transaction> transList) {
         transactions = new ArrayList<>();
         for (Transaction trans: transList) {
             TransactionSummary summary = new TransactionSummary(

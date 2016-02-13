@@ -2,8 +2,9 @@ package com.catalina.tokobat.controller;
 
 import com.catalina.tokobat.common.Constants;
 import com.catalina.tokobat.dao.TransactionDao;
-import com.catalina.tokobat.dto.ListOrderApotekDto;
+import com.catalina.tokobat.dto.ListTransactionApotekDto;
 import com.catalina.tokobat.dto.ResponseDto;
+import com.catalina.tokobat.dto.TransactionDto;
 import com.catalina.tokobat.entity.Transaction;
 import java.util.List;
 import javax.inject.Inject;
@@ -12,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -94,13 +96,34 @@ public class TransactionController {
         return true;
     }
 
+    @RequestMapping(method = RequestMethod.GET, value = "/detail")
+    public @ResponseBody
+    TransactionDto getOrderDetail(
+            @RequestParam(value = "id") long transId, Model model) {
+
+        log.info("get order detail transId  " + transId );
+
+        try {
+            Transaction trans = transDAO.getTransactionById(transId);
+            trans.setReadBy(true);
+            transDAO.updateTransaction(trans);
+            TransactionDto transactionDto = new TransactionDto(Constants.DEFAULT_SUCCESS,trans);
+            return transactionDto;
+        } catch (Exception e) {
+
+        }
+        TransactionDto transactionDto = new TransactionDto(Constants.DEFAULT_FAIL,Constants.ERROR_INDEX);
+        return  transactionDto;
+    }
+/*
     @RequestMapping(method = RequestMethod.GET)
-    public @ResponseBody ListOrderApotekDto getAllOrdersForApotek(
+    public @ResponseBody
+    ListTransactionApotekDto getAllOrdersForApotek(
             @RequestParam long apotekId) {
         
         List<Transaction> transList = 
                 transDAO.listTransactionsByApotek(apotekId);
-        ListOrderApotekDto res = new ListOrderApotekDto(transList);
+        ListTransactionApotekDto res = new ListTransactionApotekDto(transList);
         return res;
-    }
+    } */
 }
