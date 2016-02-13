@@ -22,7 +22,7 @@ public class Transaction {
     private String name;
 
     @ManyToOne(cascade={CascadeType.MERGE})
-    @JoinColumn(name="user_mssidn")
+    @JoinColumn(name="user_id")
     private User user;
 
     @ManyToOne(cascade={CascadeType.MERGE})

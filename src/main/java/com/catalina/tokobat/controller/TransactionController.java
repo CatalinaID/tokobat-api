@@ -3,10 +3,11 @@ package com.catalina.tokobat.controller;
 import com.catalina.tokobat.common.Constants;
 import com.catalina.tokobat.dao.TransactionDao;
 import com.catalina.tokobat.dto.ListTransactionApotekDto;
+import com.catalina.tokobat.dto.ListTransactionDto;
 import com.catalina.tokobat.dto.ResponseDto;
 import com.catalina.tokobat.dto.TransactionDto;
 import com.catalina.tokobat.entity.Transaction;
-import java.util.List;
+
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +20,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -115,7 +119,25 @@ public class TransactionController {
         TransactionDto transactionDto = new TransactionDto(Constants.DEFAULT_FAIL,Constants.ERROR_INDEX);
         return  transactionDto;
     }
-/*
+
+    @RequestMapping(method = RequestMethod.GET, value = "/listByUser")
+    public @ResponseBody
+    List<Transaction> listOrderByUser(
+            @RequestParam(value = "userId") long userId, Model model) {
+
+        log.info("get order detail userId  " + userId );
+
+        List<Transaction> list = new ArrayList<>();
+
+        try {
+            list = transDAO.listTransactionsByUser(userId);
+            return list;
+        } catch (Exception e) {
+
+        }
+        return list;
+    }
+
     @RequestMapping(method = RequestMethod.GET)
     public @ResponseBody
     ListTransactionApotekDto getAllOrdersForApotek(
@@ -125,5 +147,5 @@ public class TransactionController {
                 transDAO.listTransactionsByApotek(apotekId);
         ListTransactionApotekDto res = new ListTransactionApotekDto(transList);
         return res;
-    } */
+    }
 }
