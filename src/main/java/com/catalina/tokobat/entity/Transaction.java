@@ -58,7 +58,7 @@ public class Transaction {
     protected void onCreate() {
         dateCreate = Calendar.getInstance();
         readBy = false;
-        status="waiting";
+        status=Transaction.STATUS_WAITING;
     }
 
     public Transaction() {

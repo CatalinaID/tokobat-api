@@ -8,4 +8,5 @@ import com.catalina.tokobat.entity.Apotek;
 public interface ApotekDao {
     Apotek findByUsername(String apotek);
     Apotek add(Apotek apotek);
+    Apotek getApotekById(Long id);
 }

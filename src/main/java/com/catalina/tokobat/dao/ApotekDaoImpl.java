@@ -20,6 +20,11 @@ public class ApotekDaoImpl extends JpaDaoSupport implements ApotekDao {
     private EntityManager em;
 
     @Override
+    public Apotek getApotekById(Long id) {
+        return getJpaTemplate().find(Apotek.class, id);
+    }
+
+    @Override
     public Apotek findByUsername(String username) {
 
         try{

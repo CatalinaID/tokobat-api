@@ -1,7 +1,9 @@
 package com.catalina.tokobat.controller;
 
 import com.catalina.tokobat.common.Constants;
+import com.catalina.tokobat.dao.ApotekDao;
 import com.catalina.tokobat.dao.TransactionDao;
+import com.catalina.tokobat.dao.UserDao;
 import com.catalina.tokobat.dto.ListTransactionApotekDto;
 import com.catalina.tokobat.dto.ListTransactionDto;
 import com.catalina.tokobat.dto.ResponseDto;
@@ -36,6 +38,12 @@ public class TransactionController {
 
     @Inject
     private TransactionDao transDAO;
+
+    @Inject
+    private UserDao userDao;
+
+    @Inject
+    private ApotekDao apotekDao;
 
     @RequestMapping(method = RequestMethod.PUT, value = "/{transId}")
     public ResponseEntity<ResponseDto> setOrderStatus(
@@ -100,6 +108,40 @@ public class TransactionController {
         return new ResponseEntity<>(
                 new ResponseDto(Constants.DEFAULT_SUCCESS,
                         Constants.SUCCESS_INDEX), HttpStatus.OK);
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/order")
+    public @ResponseBody
+    TransactionDto registerName(@RequestParam(value = "name") String name,
+                         @RequestParam(value = "userId") long userId,
+                         @RequestParam(value = "apotekId") long apotekId,
+                         @RequestParam(required=false,value = "imgPath")  String imgPath,
+                         @RequestParam(required=false,value = "catatan")  String catatan,
+                         @RequestParam(required=false,value = "deskripsi") String deskripsi,
+
+                         Model model) {
+        try {
+            log.info("order user  " + userId + " name = " + name);
+            Transaction transaction = new Transaction();
+            transaction.setName(name);
+            transaction.setImgPath(imgPath);
+            transaction.setUser(userDao.getUserById(userId));
+            transaction.setApotek(apotekDao.getApotekById(apotekId));
+            if (catatan!=null)
+                transaction.setNotes(catatan);
+            if (deskripsi!=null)
+                transaction.setDescription(deskripsi);
+
+            transaction = transDAO.add(transaction);
+            if (transaction!=null) {
+                TransactionDto transDto = new TransactionDto( Constants.DEFAULT_SUCCESS, transaction);
+                return transDto;
+            }
+        } catch (Exception e) {
+            TransactionDto transDto = new TransactionDto(e.getMessage(),Constants.ERROR_INDEX);
+        }
+        TransactionDto transDto = new TransactionDto(Constants.DEFAULT_FAIL,Constants.ERROR_INDEX);
+        return  transDto;
     }
     
     private boolean checkStatus(String status, Transaction trans) {

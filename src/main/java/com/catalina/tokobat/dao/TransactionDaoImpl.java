@@ -62,6 +62,21 @@ public class TransactionDaoImpl extends JpaDaoSupport implements TransactionDao 
         em.flush();
         em.close();
     }
-    
+
+    @Override
+    @Transactional(readOnly=false)
+    public Transaction add(Transaction transaction) {
+        try {
+            em = EntityManagerFactoryUtils.getTransactionalEntityManager(getJpaTemplate().getEntityManagerFactory());
+            em.merge(transaction);
+            em.flush();
+            em.close();
+
+            return transaction;
+        } catch(Exception e) {
+            return null;
+        }
+    }
+
 }
 
