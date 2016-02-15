@@ -51,6 +51,17 @@ public class TransactionDaoImpl extends JpaDaoSupport implements TransactionDao 
         return getJpaTemplate().find(
                 "from Transaction u where u.user.id=?", userId);
     }
+
+    @Override
+    @Transactional(readOnly=false)
+    public void deleteTransaction(long transId) {
+        em = EntityManagerFactoryUtils.getTransactionalEntityManager(getJpaTemplate().getEntityManagerFactory());
+
+        Transaction trans = em.find(Transaction.class, transId);
+        em.remove(trans);
+        em.flush();
+        em.close();
+    }
     
 }
 

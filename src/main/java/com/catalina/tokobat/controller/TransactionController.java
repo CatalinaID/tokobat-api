@@ -71,6 +71,36 @@ public class TransactionController {
                 new ResponseDto(Constants.DEFAULT_SUCCESS, 
                         Constants.SUCCESS_INDEX), HttpStatus.OK);
     }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/delete/{transId}")
+    public ResponseEntity<ResponseDto> deleteOrder(
+            @PathVariable long transId) {
+
+        Transaction trans = transDAO.getTransactionById(transId);
+        if (trans == null) {
+            String msg = "Transaction id = " + transId + " not found";
+            log.error(msg);
+            return new ResponseEntity<>(
+                    new ResponseDto(msg, Constants.ERROR_INDEX),
+                    HttpStatus.NOT_FOUND
+            );
+        }
+        log.info("Transaction status = " + trans.getStatus() );
+        if (!trans.getStatus().equals(Transaction.STATUS_WAITING)) {
+            String msg = "Order has been "+trans.getStatus();
+            log.error(msg);
+            return new ResponseEntity<>(
+                    new ResponseDto(msg, Constants.ERROR_INDEX),
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+
+        transDAO.deleteTransaction(trans.getId());
+        log.info("Delete transaction with id = " + transId);
+        return new ResponseEntity<>(
+                new ResponseDto(Constants.DEFAULT_SUCCESS,
+                        Constants.SUCCESS_INDEX), HttpStatus.OK);
+    }
     
     private boolean checkStatus(String status, Transaction trans) {
         switch(status) {
