@@ -2,9 +2,10 @@ package com.catalina.tokobat.controller;
 
 
 import com.catalina.tokobat.common.Constants;
+import com.catalina.tokobat.common.SHA1;
 import com.catalina.tokobat.dao.UserDao;
 import com.catalina.tokobat.dto.UserDto;
-import com.catalina.tokobat.dto.UserLoginResponse;
+import com.catalina.tokobat.dto.UserLoginDto;
 import com.catalina.tokobat.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,12 +14,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.inject.Inject;
+import javax.xml.ws.Response;
 import java.util.HashMap;
 import java.util.Map;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
 
 /**
  * Created by Alifa on 3/12/2015.
@@ -54,49 +54,32 @@ public class UserController {
         return  userDto;
     }
 
-    @RequestMapping(method=RequestMethod.POST, value = "/login")
-    public ResponseEntity<UserLoginResponse> login (
-            @RequestParam(value = "uid") String uid,
-            @RequestParam(value = "msisdn") String msisdn,
-            @RequestParam(value = "credentials") String credentials) {
-        
-        Map<String, String> params = new HashMap<>();
-        params.put("uid", uid);
-        params.put("msisdn", msisdn);
-        params.put("credentials", credentials);
-        
-        RestTemplate client = new RestTemplate();
-        UserLoginResponse res;
-        
-        try {
-            User user = userDAO.getUserByMsisdn(msisdn);
-            String respon = client.getForObject(Constants.ECASH_URI
-                    + "/loginMember?"
-                    + "uid={uid}&msisdn={msisdn}&credentials={credentials}", 
-                    String.class, params);
-            ObjectMapper mapper = new ObjectMapper();
-            res = mapper.readValue(respon, UserLoginResponse.class);
-            res.setId(user.getId());
-            switch (res.getStatus()) {
-                case UserLoginResponse.LOGIN_VALID:
-                    user.setSession(res.getToken());
-                    user.setUid(uid);
-                    userDAO.updateUser(user);
-                    log.info("Login " + user.getId() + " valid");
-                    break;
-                case UserLoginResponse.LOGIN_INVALID:
-                    log.info("Login " + user.getId() + " invalid");
-                    break;
-                case UserLoginResponse.LOGIN_BLOCKED:
-                    log.info("Login " + user.getId() + " blocked");
-                    break;
-            }
-        } catch (Exception ex) {
-            res = new UserLoginResponse();
-            res.setMessage(ex.getMessage());
-            log.error(ex.getMessage());
+    @RequestMapping(method = RequestMethod.POST, value = "/login")
+    public ResponseEntity<UserLoginDto> validate(
+            @RequestParam String username,
+            @RequestParam String password) {
+        log.info("validate user with id = " + username );
+        UserLoginDto res = new UserLoginDto();
+
+        if (username.isEmpty() || password.isEmpty()) {
+            res.setMessage("Username or password is empty");
+            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        }
+
+        User user = userDAO.findByUsername(username);
+        if (user == null) {
+            res.setMessage("Username not registered");
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
+
+        SHA1 sha1 = new SHA1(password + user.getSalt());
+        if (!user.getHash().equals(sha1.hash())) {
+            res.setMessage("Username and password don't match");
+            return new ResponseEntity<>(res, HttpStatus.UNAUTHORIZED);
+        }
+        res.setId(user.getId());
+        res.setName(user.getName());
+        res.setMessage("Success");
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 }

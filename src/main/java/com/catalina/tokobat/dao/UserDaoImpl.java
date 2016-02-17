@@ -1,12 +1,15 @@
 package com.catalina.tokobat.dao;
 
+import com.catalina.tokobat.entity.Apotek;
 import com.catalina.tokobat.entity.User;
 import org.springframework.orm.jpa.EntityManagerFactoryUtils;
 import org.springframework.orm.jpa.support.JpaDaoSupport;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import java.util.List;
 
 /**
@@ -53,13 +56,16 @@ public class UserDaoImpl extends JpaDaoSupport implements UserDao {
     }
 
     @Override
-    public User getUserByMsisdn(String msisdn) throws Exception {
-        List<User> users = getJpaTemplate().find(
-                "from User u where u.msisdn=?", msisdn);
-        if (users.isEmpty()) {
-            String msg = "User with msisdn = " + msisdn + " not found";
-            throw new Exception(msg);
+    public User findByUsername(String username) {
+        try{
+            Query query = em.createQuery(
+                    "SELECT c FROM Apotek c WHERE c.username = :usr");
+            query.setParameter("usr", username);
+            Apotek c = (Apotek)query.getSingleResult();
+            User user = (User) query.getSingleResult();
+            return user;
+        } catch(NoResultException e) {
+            return null;
         }
-        return users.get(0);
     }
 }

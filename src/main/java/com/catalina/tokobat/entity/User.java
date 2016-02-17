@@ -17,17 +17,17 @@ public class User {
     @Column(name = "id")
     private long id;
 
-    @Column(name = "msisdn", nullable = true, unique = true)
-    private String msisdn;
-
-    @Column(name = "UID", nullable = true)
-    private String uid;
+    @Column(name = "username", nullable = true, unique = true)
+    private String username;
 
     @Column(name = "name", nullable = true)
     private String name;
 
-    @Column(name = "session")
-    private String session;
+    @Column(name = "hash")
+    private String hash;
+
+    @Column(name = "salt")
+    private String salt;
 
     @Column(name = "date_create")
     @Temporal(TemporalType.TIMESTAMP)
@@ -43,12 +43,6 @@ public class User {
 
     }
 
-    public User(String msisdn, String name, String uid) {
-        this.msisdn = msisdn;
-        this.name = name;
-        this.uid = uid;
-    }
-
     public long getId() {
         return id;
     }
@@ -57,20 +51,12 @@ public class User {
         this.id = id;
     }
 
-    public String getMsisdn() {
-        return msisdn;
+    public String getUsername() {
+        return username;
     }
 
-    public void setMsisdn(String msisdn) {
-        this.msisdn = msisdn;
-    }
-
-    public String getUid() {
-        return uid;
-    }
-
-    public void setUid(String uid) {
-        this.uid = uid;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getName() {
@@ -81,14 +67,21 @@ public class User {
         this.name = name;
     }
 
-    public String getSession() {
-        return session;
+    public String getHash() {
+        return hash;
     }
 
-    public void setSession(String session) {
-        this.session = session;
+    public void setHash(String hash) {
+        this.hash = hash;
     }
 
+    public String getSalt() {
+        return salt;
+    }
+
+    public void setSalt(String salt) {
+        this.salt = salt;
+    }
 
     public Calendar getDateCreate() {
         return dateCreate;
