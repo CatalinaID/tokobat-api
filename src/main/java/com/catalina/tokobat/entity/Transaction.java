@@ -50,6 +50,12 @@ public class Transaction {
     @Column(name = "status")
     private String status;
 
+    @Column(name = "traceNumber")
+    private String traceNumber;
+
+    @Column(name = "ticket")
+    private String ticket;
+
     @Column(name = "date_create")
     @Temporal(TemporalType.TIMESTAMP)
     private Calendar dateCreate;
@@ -127,6 +133,22 @@ public class Transaction {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getTraceNumber() {
+        return traceNumber;
+    }
+
+    public void setTraceNumber(String traceNumber) {
+        this.traceNumber = traceNumber;
+    }
+
+    public String getTicket() {
+        return ticket;
+    }
+
+    public void setTicket(String ticket) {
+        this.ticket = ticket;
     }
 
     public Calendar getDateCreate() {

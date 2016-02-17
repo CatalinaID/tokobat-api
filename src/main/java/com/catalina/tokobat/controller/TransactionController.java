@@ -4,13 +4,12 @@ import com.catalina.tokobat.common.Constants;
 import com.catalina.tokobat.dao.ApotekDao;
 import com.catalina.tokobat.dao.TransactionDao;
 import com.catalina.tokobat.dao.UserDao;
-import com.catalina.tokobat.dto.ListTransactionApotekDto;
-import com.catalina.tokobat.dto.ListTransactionDto;
-import com.catalina.tokobat.dto.ResponseDto;
-import com.catalina.tokobat.dto.TransactionDto;
+import com.catalina.tokobat.dto.*;
 import com.catalina.tokobat.entity.Transaction;
 
 import javax.inject.Inject;
+
+import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -22,9 +21,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.util.*;
 
 /**
  *
@@ -34,7 +36,7 @@ import java.util.List;
 @RequestMapping(value="/transactions")
 public class TransactionController {
 
-    private static Logger log = LoggerFactory.getLogger(UserController.class);
+    private static Logger log = LoggerFactory.getLogger(TransactionController.class);
 
     @Inject
     private TransactionDao transDAO;
@@ -49,7 +51,8 @@ public class TransactionController {
     public ResponseEntity<ResponseDto> setOrderStatus(
             @PathVariable long transId,
             @RequestParam String status,
-            @RequestParam(required=false) String apotekNotes) {
+            @RequestParam(required=false) String apotekNotes,
+            @RequestParam(required=false) BigDecimal totalPrice) {
         
         Transaction trans = transDAO.getTransactionById(transId);
         if (trans == null) {
@@ -71,6 +74,16 @@ public class TransactionController {
         if (status.equals(Transaction.STATUS_ACCEPTED)
                 || status.equals(Transaction.STATUS_DECLINED)) {
             trans.setApotekNotes(apotekNotes);
+        }
+        if (status.equals(Transaction.STATUS_ACCEPTED)){
+            if ((totalPrice == null) || (totalPrice.compareTo(BigDecimal.ZERO) <= 0)) {
+                String msg = "Total price parameter not valid";
+                return new ResponseEntity<>(
+                        new ResponseDto(msg, Constants.ERROR_INDEX),
+                        HttpStatus.BAD_REQUEST
+                );
+            }
+            trans.setTotal(totalPrice);
         }
         trans.setStatus(status);
         transDAO.updateTransaction(trans);
@@ -143,34 +156,6 @@ public class TransactionController {
         TransactionDto transDto = new TransactionDto(Constants.DEFAULT_FAIL,Constants.ERROR_INDEX);
         return  transDto;
     }
-    
-    private boolean checkStatus(String status, Transaction trans) {
-        switch(status) {
-            case Transaction.STATUS_DECLINED:
-                if (!trans.getStatus().equals(Transaction.STATUS_WAITING)) {
-                    return false;
-                }
-                break;
-            case Transaction.STATUS_ACCEPTED:
-                if (!trans.getStatus().equals(Transaction.STATUS_WAITING)) {
-                    return false;
-                }
-                break;
-            case Transaction.STATUS_READY: 
-                if (!trans.getStatus().equals(Transaction.STATUS_ACCEPTED)) {
-                    return false;
-                }
-                break;
-            case Transaction.STATUS_FINISHED: 
-                if (!trans.getStatus().equals(Transaction.STATUS_READY)) {
-                    return false;
-                }
-                break;
-            default:
-                return false;
-        }
-        return true;
-    }
 
     @RequestMapping(method = RequestMethod.GET, value = "/detail")
     public @ResponseBody
@@ -203,7 +188,11 @@ public class TransactionController {
 
         try {
             list = transDAO.listTransactionsByUser(userId);
-            return list;
+            for (Transaction trans: list) {
+                if (checkPayment(trans)) {
+                    trans.setStatus(Transaction.STATUS_PAID);
+                }
+            }
         } catch (Exception e) {
 
         }
@@ -214,10 +203,97 @@ public class TransactionController {
     public @ResponseBody
     ListTransactionApotekDto getAllOrdersForApotek(
             @RequestParam long apotekId) {
-        
+
         List<Transaction> transList = 
                 transDAO.listTransactionsByApotek(apotekId);
         ListTransactionApotekDto res = new ListTransactionApotekDto(transList);
         return res;
     }
+
+    @RequestMapping(method = RequestMethod.GET, value="/{orderId}/payment")
+    public ResponseEntity<PaymentDto> payment (
+            @PathVariable long orderId,
+            @RequestParam String returnUrl) {
+        PaymentDto res = new PaymentDto();
+        Transaction trans = transDAO.getTransactionById(orderId);
+        if (trans == null) {
+            res.setMessage("Transaction id = " + orderId +" not found");
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        if (!trans.getStatus().equals(Transaction.STATUS_ACCEPTED)) {
+            res.setMessage("Payment not allowed to this transaction");
+            return new ResponseEntity<PaymentDto>(res, HttpStatus.BAD_REQUEST);
+        }
+        Map<String, String> params = new HashMap<>();
+        params.put("amount", "" + trans.getTotal());
+        String traceNumber = "" + (new Date()).getTime();
+        params.put("tracenumber", traceNumber);
+        params.put("returnurl", returnUrl);
+
+        String respon = (new RestTemplate()).getForObject(Constants.TICKET_URI
+                + "?amount={amount}&tracenumber={tracenumber}&returnurl={returnurl}",
+                String.class, params);
+        ObjectMapper mapper = new ObjectMapper();
+        TicketDto ticket;
+        try {
+            ticket = mapper.readValue(respon, TicketDto.class);
+            trans.setTraceNumber(traceNumber);
+            trans.setTicket(ticket.ticketID);
+            transDAO.updateTransaction(trans);
+            res.setUrlToPay(Constants.IPG_URI + "/payment.html?id=" + ticket.ticketID);
+            res.setId(trans.getId());
+        } catch (Exception e) {
+            return new ResponseEntity<>(res, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+
+    private boolean checkStatus(String status, Transaction trans) {
+        switch(status) {
+            case Transaction.STATUS_DECLINED:
+                if (!trans.getStatus().equals(Transaction.STATUS_WAITING)) {
+                    return false;
+                }
+                break;
+            case Transaction.STATUS_ACCEPTED:
+                if (!trans.getStatus().equals(Transaction.STATUS_WAITING)) {
+                    return false;
+                }
+                break;
+            case Transaction.STATUS_READY:
+                if (!trans.getStatus().equals(Transaction.STATUS_ACCEPTED)) {
+                    return false;
+                }
+                break;
+            case Transaction.STATUS_FINISHED:
+                if (!trans.getStatus().equals(Transaction.STATUS_READY)) {
+                    return false;
+                }
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
+
+    private boolean checkPayment(Transaction trans) {
+        boolean res = false;
+        if ((trans.getStatus().equals(Transaction.STATUS_ACCEPTED)) && (! trans.getTicket().isEmpty())) {
+            Map<String, String> params = new HashMap<>();
+            params.put("id", trans.getTicket());
+            String respon = (new RestTemplate()).getForObject(Constants.IPG_URI
+                            + "/validation.html?id={id}", String.class, params);
+            String[] items = respon.trim().split(",");
+            if ((trans.getTraceNumber().equals(items[3])) && (items[4].equals("SUCCESS"))) {
+                trans.setStatus(Transaction.STATUS_PAID);
+                res = true;
+            } else if ((trans.getTraceNumber().equals(items[3])) && (items[4].equals("FAILED"))) {
+                trans.setTicket(null);
+                trans.setTraceNumber(null);
+            }
+            transDAO.updateTransaction(trans);
+        }
+        return res;
+    }
+
 }

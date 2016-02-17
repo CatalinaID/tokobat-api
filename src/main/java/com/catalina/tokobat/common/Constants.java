@@ -10,7 +10,7 @@ public final class Constants {
 
     public static final String DEFAULT_SUCCESS = "OK";
     public static final String DEFAULT_FAIL = "FAIL";
-    
-    public static final String ECASH_URI = "https://api.apim.ibmcloud.com"
-            + "/ex-icha-fmeirisidibmcom-ecash-be/sb/emoney/v1";    
+
+    public static final String IPG_URI = "http://128.199.115.34:8080/ecommgateway";
+    public static final String TICKET_URI = "http://128.199.115.34:6557/ipg/ticket";
 }
