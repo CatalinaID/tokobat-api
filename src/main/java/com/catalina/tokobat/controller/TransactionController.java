@@ -278,20 +278,24 @@ public class TransactionController {
 
     private boolean checkPayment(Transaction trans) {
         boolean res = false;
-        if ((trans.getStatus().equals(Transaction.STATUS_ACCEPTED)) && (! trans.getTicket().isEmpty())) {
+        if ((trans.getStatus().equals(Transaction.STATUS_ACCEPTED)) && (trans.getTicket() != null)) {
             Map<String, String> params = new HashMap<>();
             params.put("id", trans.getTicket());
-            String respon = (new RestTemplate()).getForObject(Constants.IPG_URI
-                            + "/validation.html?id={id}", String.class, params);
-            String[] items = respon.trim().split(",");
-            if ((trans.getTraceNumber().equals(items[3])) && (items[4].equals("SUCCESS"))) {
-                trans.setStatus(Transaction.STATUS_PAID);
-                res = true;
-            } else if ((trans.getTraceNumber().equals(items[3])) && (items[4].equals("FAILED"))) {
-                trans.setTicket(null);
-                trans.setTraceNumber(null);
+            try {
+                String respon = (new RestTemplate()).getForObject(Constants.IPG_URI
+                        + "/validation.html?id={id}", String.class, params);
+                String[] items = respon.trim().split(",");
+                if ((trans.getTraceNumber().equals(items[3])) && (items[4].equals("SUCCESS"))) {
+                    trans.setStatus(Transaction.STATUS_PAID);
+                    res = true;
+                } else if ((trans.getTraceNumber().equals(items[3])) && (items[4].equals("FAILED"))) {
+                    trans.setTicket(null);
+                    trans.setTraceNumber(null);
+                }
+                transDAO.updateTransaction(trans);
+            } catch (Exception ex) {
+                return false;
             }
-            transDAO.updateTransaction(trans);
         }
         return res;
     }
