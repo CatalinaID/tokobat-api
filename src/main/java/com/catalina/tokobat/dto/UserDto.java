@@ -24,10 +24,10 @@ public class UserDto  extends ResponseDto{
 
     public UserDto(String message, long id,User user) {
         super(message, id);
-        this.msisdn = user.getMsisdn();
-        this.uid = user.getUid();
+//        this.msisdn = user.getMsisdn();
+//        this.uid = user.getUid();
         this.name = user.getName();
-        this.session = user.getSession();
+//        this.session = user.getSession();
     }
 
     public String getMsisdn() {

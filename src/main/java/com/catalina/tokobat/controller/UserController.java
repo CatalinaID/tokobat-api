@@ -33,26 +33,26 @@ public class UserController {
     private UserDao userDAO;
     
 
-    @RequestMapping(method = RequestMethod.POST, value = "/register")
-    public @ResponseBody
-    UserDto registerName(@RequestParam(value = "name") String name,
-                      @RequestParam(value = "msisdn") String msisdn,
-                      Model model) {
-
-        try {
-            log.info("register msisdn  " + msisdn + " name = " + name);
-            User user = userDAO.getUserByMsisdn(msisdn);
-            user.setName(name);
-            user = userDAO.updateUser(user);
-            log.info("success register msisdn  " + user.getMsisdn() + " name = " + user.getName());
-            UserDto userDto = new UserDto(Constants.DEFAULT_SUCCESS,user.getId(),user);
-            return userDto;
-        } catch (Exception e) {
-            UserDto userDto = new UserDto(e.getMessage(),Constants.ERROR_INDEX);
-        }
-        UserDto userDto = new UserDto(Constants.DEFAULT_FAIL,Constants.ERROR_INDEX);
-        return  userDto;
-    }
+//    @RequestMapping(method = RequestMethod.POST, value = "/register")
+//    public @ResponseBody
+//    UserDto registerName(@RequestParam(value = "name") String name,
+//                      @RequestParam(value = "msisdn") String msisdn,
+//                      Model model) {
+//
+//        try {
+//            log.info("register msisdn  " + msisdn + " name = " + name);
+//            User user = userDAO.getUserByMsisdn(msisdn);
+//            user.setName(name);
+//            user = userDAO.updateUser(user);
+//            log.info("success register msisdn  " + user.getMsisdn() + " name = " + user.getName());
+//            UserDto userDto = new UserDto(Constants.DEFAULT_SUCCESS,user.getId(),user);
+//            return userDto;
+//        } catch (Exception e) {
+//            UserDto userDto = new UserDto(e.getMessage(),Constants.ERROR_INDEX);
+//        }
+//        UserDto userDto = new UserDto(Constants.DEFAULT_FAIL,Constants.ERROR_INDEX);
+//        return  userDto;
+//    }
 
     @RequestMapping(method = RequestMethod.POST, value = "/login")
     public ResponseEntity<UserLoginDto> validate(
