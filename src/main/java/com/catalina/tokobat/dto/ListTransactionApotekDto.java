@@ -8,7 +8,7 @@ import java.util.List;
 
 /**
  *
- * @author icha
+ * @author ichakid
  */
 public class ListTransactionApotekDto implements Serializable {
     public List<TransactionSummary> transactions;
@@ -32,14 +32,14 @@ public class ListTransactionApotekDto implements Serializable {
         public long transId;
         public String senderName;
         public boolean read;
-        public String dateCreate;
+        public Calendar dateCreate;
         
         public TransactionSummary(long transId, String senderName,
                 boolean read, Calendar dateCreate) {
             this.transId = transId;
             this.senderName = senderName;
             this.read = read;
-            this.dateCreate = dateCreate.;
+            this.dateCreate = dateCreate;
         }
     }
 }
