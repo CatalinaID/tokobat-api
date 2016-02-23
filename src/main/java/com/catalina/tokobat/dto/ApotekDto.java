@@ -25,10 +25,9 @@ public class ApotekDto extends ResponseDto {
         this.message=msg;
     }
 
-    public ApotekDto(long id, String name, String username, String address, String lat, String lng) {
+    public ApotekDto(long id, String name,String address, String lat, String lng) {
         this.id = id;
         this.name = name;
-        this.username = username;
         this.address = address;
         this.lat = lat;
         this.lng = lng;

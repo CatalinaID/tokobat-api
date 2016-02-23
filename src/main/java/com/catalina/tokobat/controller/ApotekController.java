@@ -6,6 +6,7 @@ import com.catalina.tokobat.dao.ApotekDao;
 import com.catalina.tokobat.dto.ApotekDto;
 import com.catalina.tokobat.dto.ApotekLoginDto;
 import com.catalina.tokobat.entity.Apotek;
+import com.catalina.tokobat.entity.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -19,6 +20,8 @@ import javax.inject.Inject;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Alifa on 2/7/2016.
@@ -52,28 +55,26 @@ public class ApotekController {
         }
         return new ApotekLoginDto(Constants.ERROR_INDEX, "error");
     }
-/*
-    @RequestMapping(method = RequestMethod.POST, value = "/get")
-    public @ResponseBody
-    ApotekLoginResponse getArroundMe(
-            @RequestParam(value = "lat") String lat,
-            @RequestParam(value = "lng") String lng,
-            @RequestParam(value = "radius") String radius, Model model) {
-        log.info("Get Apotek " + radius );
 
-        if (lat!=null && lng!=null && radius!=null ) {
-            Apotek apotek = apotekDAO.findByUsername(username);
-            if (apotek != null) {
-                SHA1 sha1 = new SHA1(psswd+apotek.getSalt());
-                if (apotek.getHash().equals(sha1.hash())) {
-                    return new ApotekLoginResponse(0, "success", apotek.getId(), apotek.getName());
-                } else {
-                    return new ApotekLoginResponse(1, "invalid", apotek.getId(), apotek.getName());
-                }
+    @RequestMapping(method = RequestMethod.GET, value = "/list")
+    public @ResponseBody
+    List<ApotekDto> listApotek(
+          Model model) {
+
+        List<Apotek> list = new ArrayList<>();
+        List<ApotekDto> listDto = new ArrayList<>();
+
+        try {
+            list = apotekDAO.listAll();
+            for (int i=0; i<list.size(); i++) {
+                listDto.add(new ApotekDto(list.get(i).getId(), list.get(i).getName(),
+                        list.get(i).getAddress(), list.get(i).getLat(), list.get(i).getLng()));
             }
+        } catch (Exception e) {
+
         }
-        return new ApotekLoginResponse(1, "error");
-    } */
+        return listDto;
+    }
 
     @RequestMapping(method = RequestMethod.POST, value = "/add")
     public @ResponseBody
@@ -99,6 +100,49 @@ public class ApotekController {
             ApotekDto apotekDto = new ApotekDto(apotek.getId(),apotek.getName(),apotek.getUsername(),apotek.getAddress()
                     ,apotek.getLat(),apotek.getLng(),apotek.getBalance(), Constants.DEFAULT_SUCCESS);
             return apotekDto;
+        }
+
+        ApotekDto fail = new ApotekDto(Constants.ERROR_INDEX,Constants.DEFAULT_FAIL);
+        return fail;
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/updateLokasi")
+    public @ResponseBody
+    ApotekDto addApotek(@RequestParam(value = "id") long id , @RequestParam(value = "lat") String lat , @RequestParam(value = "lng") String lng, Model model) {
+        log.info("update apotek = " + lat + " - " + lng);
+
+        SecureRandom random = new SecureRandom();
+
+        Apotek apotek = apotekDAO.getApotekById(id);
+        apotek.setLat(lat);
+        apotek.setLng(lng);
+        try {
+            apotek = apotekDAO.update(apotek);
+            return new ApotekDto(apotek.getId(),apotek.getName(),apotek.getUsername(),apotek.getAddress()
+                    ,apotek.getLat(),apotek.getLng(),apotek.getBalance(), Constants.DEFAULT_SUCCESS);
+        } catch (Exception e) {
+
+        }
+
+        ApotekDto fail = new ApotekDto(Constants.ERROR_INDEX,Constants.DEFAULT_FAIL);
+        return fail;
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/updatePwd")
+    public @ResponseBody
+    ApotekDto updatePwd(@RequestParam(value = "id") long id , @RequestParam(value = "hash") String hash , @RequestParam(value = "salt") String salt, Model model) {
+
+        SecureRandom random = new SecureRandom();
+
+        Apotek apotek = apotekDAO.getApotekById(id);
+        apotek.setHash(hash);
+        apotek.setSalt(salt);
+        try {
+            apotek = apotekDAO.update(apotek);
+            return new ApotekDto(apotek.getId(),apotek.getName(),apotek.getUsername(),apotek.getAddress()
+                    ,apotek.getLat(),apotek.getLng(),apotek.getBalance(), Constants.DEFAULT_SUCCESS);
+        } catch (Exception e) {
+
         }
 
         ApotekDto fail = new ApotekDto(Constants.ERROR_INDEX,Constants.DEFAULT_FAIL);

@@ -1,6 +1,8 @@
 package com.catalina.tokobat.dao;
 
 import com.catalina.tokobat.entity.Apotek;
+import com.catalina.tokobat.entity.Transaction;
+import com.catalina.tokobat.entity.User;
 import org.springframework.orm.jpa.EntityManagerFactoryUtils;
 import org.springframework.orm.jpa.support.JpaDaoSupport;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,6 +12,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import java.util.List;
 
 /**
  * Created by Alifa on 2/7/2016.
@@ -54,5 +57,22 @@ public class ApotekDaoImpl extends JpaDaoSupport implements ApotekDao {
         } catch(Exception e) {
             return null;
         }
+    }
+
+    @Override
+    @Transactional(readOnly=false)
+    public Apotek update(Apotek apotek) {
+
+        em = EntityManagerFactoryUtils.getTransactionalEntityManager(getJpaTemplate().getEntityManagerFactory());
+        em.merge(apotek);
+        em.flush();
+        em.close();
+
+        return apotek;
+    }
+
+    @Override
+    public List<Apotek> listAll() {
+        return getJpaTemplate().find("select u from Apotek u");
     }
 }
