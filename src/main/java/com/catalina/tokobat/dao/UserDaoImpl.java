@@ -59,9 +59,8 @@ public class UserDaoImpl extends JpaDaoSupport implements UserDao {
     public User findByUsername(String username) {
         try{
             Query query = em.createQuery(
-                    "SELECT c FROM Apotek c WHERE c.username = :usr");
+                    "SELECT c FROM User c WHERE c.username = :usr");
             query.setParameter("usr", username);
-            Apotek c = (Apotek)query.getSingleResult();
             User user = (User) query.getSingleResult();
             return user;
         } catch(NoResultException e) {
