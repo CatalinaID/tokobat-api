@@ -55,6 +55,8 @@
     <bean id="apotekDAO" class="com.catalina.tokobat.dao.ApotekDaoImpl"/>
     <bean id="transDAO" class="com.catalina.tokobat.dao.TransactionDaoImpl"/>
 
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver"/>
+
 
 
 </beans>

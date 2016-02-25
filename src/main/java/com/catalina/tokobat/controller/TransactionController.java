@@ -7,9 +7,18 @@ import com.catalina.tokobat.dao.UserDao;
 import com.catalina.tokobat.dto.*;
 import com.catalina.tokobat.entity.Transaction;
 
+import javax.imageio.ImageIO;
 import javax.inject.Inject;
 
 import org.codehaus.jackson.map.ObjectMapper;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.openstack4j.api.OSClient;
+import org.openstack4j.model.common.Identifier;
+import org.openstack4j.model.common.Payloads;
+import org.openstack4j.model.storage.object.SwiftAccount;
+import org.openstack4j.openstack.OSFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -22,7 +31,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -298,6 +311,57 @@ public class TransactionController {
             }
         }
         return res;
+    }
+
+    @RequestMapping(value = "/resep-upload", headers = "content-type=multipart/*", method = RequestMethod.POST)
+    @ResponseBody
+    public UploadResponseDto uploadProductImg(@RequestParam MultipartFile file)
+    {
+        try {
+            BufferedImage image = ImageIO.read(file.getInputStream());
+            String name = "resep-" + new Date().toString();
+            File outputFile = new File("src/main/webapp/images/resep-"+name+".png");
+            ImageIO.write(image, "png", outputFile);
+
+            //String envServices = System.getenv("VCAP_SERVICES");
+
+            JSONParser parser = new JSONParser();
+            Object obj = parser.parse(new FileReader("src/main/webapp/tokobat-api_VCAP_Services.json"));
+
+            JSONObject jsonObject = (JSONObject) obj;
+
+            //Object obj = parser.parse(Constants.ENV_VAR);
+            //JSONObject jsonObject = (JSONObject) obj;
+            JSONArray vcapArray = (JSONArray) jsonObject.get("Object-Storage");
+            JSONObject vcap = (JSONObject) vcapArray.get(0);
+            JSONObject credentials = (JSONObject) vcap.get("credentials");
+            String userId = credentials.get("userId").toString();
+
+
+            log.info("VCAP userId  " + userId );
+
+            String password = credentials.get("password").toString();
+            String auth_url = credentials.get("auth_url").toString() + "/v3";
+            String domain = credentials.get("domainName").toString();
+            String project = credentials.get("project").toString();
+            Identifier domainIdent = Identifier.byName(domain);
+            Identifier projectIdent = Identifier.byName(project);
+
+            OSClient os = OSFactory.builderV3()
+                    .endpoint(auth_url)
+                    .credentials(userId, password)
+                    .scopeToProject(projectIdent, domainIdent)
+                    .authenticate();
+
+            SwiftAccount account = os.objectStorage().account().get();
+            String etag = os.objectStorage().objects().put("tk-resep", name, Payloads.create(outputFile));
+
+            return new UploadResponseDto(Constants.DEFAULT_SUCCESS, Constants.SUCCESS_INDEX,name);
+        } catch(Exception ex) {
+
+        }
+
+        return new UploadResponseDto(Constants.ERROR_MESSAGE, Constants.ERROR_INDEX);
     }
 
 }

@@ -1,0 +1,27 @@
+{
+  "elephantsql" : [ {
+    "name" : "ElephantSQL",
+    "label" : "elephantsql",
+    "plan" : "turtle",
+    "credentials" : {
+      "uri" : "postgres://woknocen:p9MLt7sQ9XCvkxnLZHwPN_GgfVKIPFZi@jumbo.db.elephantsql.com:5432/woknocen",
+      "max_conns" : "5"
+    }
+  } ],
+  "Object-Storage" : [ {
+    "name" : "tokobat-img",
+    "label" : "Object-Storage",
+    "plan" : "Free",
+    "credentials" : {
+      "auth_url" : "https://identity.open.softlayer.com",
+      "project" : "object_storage_3e2ce74c_b529_49cb_a5cb_e72954e9876e",
+      "projectId" : "57557560a4cf43e69b07540ec4a9e5ee",
+      "region" : "dallas",
+      "userId" : "6907b89a637443778e4b80ba4d938f07",
+      "username" : "Admin_87a7d6b2b7d22471251258090745a2e521482056",
+      "password" : "hl0L?y8wu]inJ.Xs",
+      "domainId" : "ea999ced620c4fc7a692d6ee514e84af",
+      "domainName" : "913513"
+    }
+  } ]
+}
