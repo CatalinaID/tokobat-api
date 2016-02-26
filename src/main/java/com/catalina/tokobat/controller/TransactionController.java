@@ -17,7 +17,6 @@ import org.json.simple.parser.JSONParser;
 import org.openstack4j.api.OSClient;
 import org.openstack4j.model.common.Identifier;
 import org.openstack4j.model.common.Payloads;
-import org.openstack4j.model.storage.object.SwiftAccount;
 import org.openstack4j.openstack.OSFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +41,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.*;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.FileUtils;
 import org.json.simple.parser.ParseException;
 import org.openstack4j.model.common.DLPayload;
 
@@ -370,16 +371,16 @@ public class TransactionController {
 
     @RequestMapping(value = "/resep-upload", headers = "content-type=multipart/*", method = RequestMethod.POST)
     public ResponseEntity<UploadResponseDto> uploadProductImg(
-            @RequestParam MultipartFile file) {
+            @RequestParam String image) {
         try {
-            BufferedImage image = ImageIO.read(file.getInputStream());
             String name = "resep-" + new Timestamp(System.currentTimeMillis());;
-            File outputFile = new File(name+".png");
-            ImageIO.write(image, "png", outputFile);
+            File file = new File(name+".png");
+            byte[] bytes = Base64.decodeBase64("base64");
+            FileUtils.writeByteArrayToFile(file, bytes);
             
             String etag = getObjectStorage().objectStorage().objects().put(
                     Constants.CONTAINER_IMG, name, 
-                    Payloads.create(multipartToFile(file)));
+                    Payloads.create(file));
 
             return new ResponseEntity<>(new UploadResponseDto(
                     Constants.DEFAULT_SUCCESS, Constants.SUCCESS_INDEX, name),
