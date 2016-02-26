@@ -49,7 +49,7 @@ public class ApotekDaoImpl extends JpaDaoSupport implements ApotekDao {
 
         try {
             em = EntityManagerFactoryUtils.getTransactionalEntityManager(getJpaTemplate().getEntityManagerFactory());
-            em.merge(apotek);
+            apotek = em.merge(apotek);
             em.flush();
             em.close();
 

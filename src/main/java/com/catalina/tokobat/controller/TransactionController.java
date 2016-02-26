@@ -289,8 +289,13 @@ public class TransactionController {
                     return false;
                 }
                 break;
-            case Transaction.STATUS_READY:
+            case Transaction.STATUS_PAID:
                 if (!trans.getStatus().equals(Transaction.STATUS_ACCEPTED)) {
+                    return false;
+                }
+                break;
+            case Transaction.STATUS_READY:
+                if (!trans.getStatus().equals(Transaction.STATUS_PAID)) {
                     return false;
                 }
                 break;
