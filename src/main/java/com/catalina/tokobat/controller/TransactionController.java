@@ -155,6 +155,9 @@ public class TransactionController {
             log.info("order user  " + userId + " name = " + name);
             Transaction transaction = new Transaction();
             transaction.setName(name);
+            if (imgPath == null) {
+                imgPath = "resep-2016-02-26 22:36:10.449";
+            }
             transaction.setImgPath(imgPath);
             transaction.setUser(userDao.getUserById(userId));
             transaction.setApotek(apotekDao.getApotekById(apotekId));
@@ -381,6 +384,29 @@ public class TransactionController {
             String etag = getObjectStorage().objectStorage().objects().put(
                     Constants.CONTAINER_IMG, name, 
                     Payloads.create(file));
+
+            return new ResponseEntity<>(new UploadResponseDto(
+                    Constants.DEFAULT_SUCCESS, Constants.SUCCESS_INDEX, name),
+                    HttpStatus.OK);
+        } catch(Exception ex) {
+            return new ResponseEntity<>(new UploadResponseDto(
+                    ex.getMessage(), Constants.ERROR_INDEX),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @RequestMapping(value = "/resep-upload-file", method = RequestMethod.POST)
+    public ResponseEntity<UploadResponseDto> uploadProductImg(
+            @RequestParam MultipartFile file) {
+        try {
+            String name = "resep-" + new Timestamp(System.currentTimeMillis());;
+            File outfile = new File(name+".png");
+            BufferedImage image = ImageIO.read(file.getInputStream());
+            ImageIO.write(image, "png", outfile);
+            
+            String etag = getObjectStorage().objectStorage().objects().put(
+                    Constants.CONTAINER_IMG, name, 
+                    Payloads.create(multipartToFile(file)));
 
             return new ResponseEntity<>(new UploadResponseDto(
                     Constants.DEFAULT_SUCCESS, Constants.SUCCESS_INDEX, name),
