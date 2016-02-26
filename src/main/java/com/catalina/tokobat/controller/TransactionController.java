@@ -34,6 +34,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -378,7 +379,7 @@ public class TransactionController {
     
     @RequestMapping(value = "/get-resep", headers = "Accept=image/jpeg, image/jpg,"
             + " image/png, image/gif", method = RequestMethod.GET)
-    public @ResponseBody BufferedImage getImage(@RequestParam String imgPath){
+    public @ResponseBody byte[] getImage(@RequestParam String imgPath){
         try {
             String envServices = System.getenv("VCAP_SERVICES");
 
@@ -402,10 +403,13 @@ public class TransactionController {
                     .credentials(userId, password)
                     .scopeToProject(projectIdent, domainIdent)
                     .authenticate();
-
             SwiftAccount account = os.objectStorage().account().get();
+            
             DLPayload pl = os.objectStorage().objects().download(Constants.CONTAINER_IMG, imgPath);
-            return ImageIO.read(pl.getInputStream());
+            BufferedImage img = ImageIO.read(pl.getInputStream());
+            ByteArrayOutputStream bao = new ByteArrayOutputStream();
+            ImageIO.write(img, "png", bao);
+            return bao.toByteArray();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
