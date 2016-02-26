@@ -369,7 +369,7 @@ public class TransactionController {
         return os;
     }
 
-    @RequestMapping(value = "/resep-upload", headers = "content-type=multipart/*", method = RequestMethod.POST)
+    @RequestMapping(value = "/resep-upload", method = RequestMethod.POST)
     public ResponseEntity<UploadResponseDto> uploadProductImg(
             @RequestParam String image) {
         try {
