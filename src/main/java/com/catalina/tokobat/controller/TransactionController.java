@@ -314,13 +314,10 @@ public class TransactionController {
         return res;
     }
 
-    public File convert(MultipartFile file) throws IOException
+    public File multipartToFile(MultipartFile multipart) throws IllegalStateException, IOException
     {
-        File convFile = new File(file.getOriginalFilename());
-        convFile.createNewFile();
-        FileOutputStream fos = new FileOutputStream(convFile);
-        fos.write(file.getBytes());
-        fos.close();
+        File convFile = new File( multipart.getOriginalFilename());
+        multipart.transferTo(convFile);
         return convFile;
     }
 
@@ -328,6 +325,7 @@ public class TransactionController {
     @ResponseBody
     public UploadResponseDto uploadProductImg(@RequestParam MultipartFile file)
     {
+        String etag ="";
         try {
             //BufferedImage image = ImageIO.read(file.getInputStream());
             String name = "resep-" + new Timestamp(System.currentTimeMillis());;
@@ -337,12 +335,12 @@ public class TransactionController {
             //String envServices = System.getenv("VCAP_SERVICES");
 
             JSONParser parser = new JSONParser();
-            Object obj = parser.parse(new FileReader("src/main/webapp/tokobat-api_VCAP_Services.json"));
+            //Object obj = parser.parse(new FileReader("src/main/webapp/tokobat-api_VCAP_Services.json"));
 
-            JSONObject jsonObject = (JSONObject) obj;
-
-            //Object obj = parser.parse(Constants.ENV_VAR);
             //JSONObject jsonObject = (JSONObject) obj;
+
+            Object obj = parser.parse(Constants.ENV_VAR);
+            JSONObject jsonObject = (JSONObject) obj;
             JSONArray vcapArray = (JSONArray) jsonObject.get("Object-Storage");
             JSONObject vcap = (JSONObject) vcapArray.get(0);
             JSONObject credentials = (JSONObject) vcap.get("credentials");
@@ -365,14 +363,16 @@ public class TransactionController {
                     .authenticate();
 
             SwiftAccount account = os.objectStorage().account().get();
-            String etag = os.objectStorage().objects().put("tk-resep", name, Payloads.create(convert(file)));
+            etag = os.objectStorage().objects().put("tk-resep", name, Payloads.create(multipartToFile(file)));
 
             return new UploadResponseDto(Constants.DEFAULT_SUCCESS, Constants.SUCCESS_INDEX,name);
         } catch(Exception ex) {
 
+            return new UploadResponseDto(etag, Constants.ERROR_INDEX);
+
         }
 
-        return new UploadResponseDto(Constants.ERROR_MESSAGE, Constants.ERROR_INDEX);
+        //return new UploadResponseDto(Constants.ERROR_MESSAGE, Constants.ERROR_INDEX);
     }
 
 }
