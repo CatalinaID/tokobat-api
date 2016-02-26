@@ -35,6 +35,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -313,15 +314,25 @@ public class TransactionController {
         return res;
     }
 
+    public File convert(MultipartFile file) throws IOException
+    {
+        File convFile = new File(file.getOriginalFilename());
+        convFile.createNewFile();
+        FileOutputStream fos = new FileOutputStream(convFile);
+        fos.write(file.getBytes());
+        fos.close();
+        return convFile;
+    }
+
     @RequestMapping(value = "/resep-upload", headers = "content-type=multipart/*", method = RequestMethod.POST)
     @ResponseBody
     public UploadResponseDto uploadProductImg(@RequestParam MultipartFile file)
     {
         try {
-            BufferedImage image = ImageIO.read(file.getInputStream());
-            String name = "resep-" + new Date().toString();
-            File outputFile = new File("src/main/webapp/images/resep-"+name+".png");
-            ImageIO.write(image, "png", outputFile);
+            //BufferedImage image = ImageIO.read(file.getInputStream());
+            String name = "resep-" + new Timestamp(System.currentTimeMillis());;
+            //File outputFile = new File(file);
+            //ImageIO.write(image, "png", outputFile);
 
             //String envServices = System.getenv("VCAP_SERVICES");
 
@@ -354,7 +365,7 @@ public class TransactionController {
                     .authenticate();
 
             SwiftAccount account = os.objectStorage().account().get();
-            String etag = os.objectStorage().objects().put("tk-resep", name, Payloads.create(outputFile));
+            String etag = os.objectStorage().objects().put("tk-resep", name, Payloads.create(convert(file)));
 
             return new UploadResponseDto(Constants.DEFAULT_SUCCESS, Constants.SUCCESS_INDEX,name);
         } catch(Exception ex) {
