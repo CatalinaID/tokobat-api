@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.*;
+import org.json.simple.parser.ParseException;
 import org.openstack4j.model.common.DLPayload;
 
 /**
@@ -322,90 +323,62 @@ public class TransactionController {
         multipart.transferTo(convFile);
         return convFile;
     }
+    
+    private OSClient getObjectStorage() throws ParseException {
+        String envServices = System.getenv("VCAP_SERVICES");
+        JSONParser parser = new JSONParser();
+        Object obj = parser.parse(envServices);
+        JSONObject jsonObject = (JSONObject) obj;
+        JSONArray vcapArray = (JSONArray) jsonObject.get("Object-Storage");
+        JSONObject vcap = (JSONObject) vcapArray.get(0);
+        JSONObject credentials = (JSONObject) vcap.get("credentials");
+        String userId = credentials.get("userId").toString();
+
+        log.info("VCAP userId  " + userId );
+
+        String password = credentials.get("password").toString();
+        String auth_url = credentials.get("auth_url").toString() + "/v3";
+        String domain = credentials.get("domainName").toString();
+        String project = credentials.get("project").toString();
+        Identifier domainIdent = Identifier.byName(domain);
+        Identifier projectIdent = Identifier.byName(project);
+
+        OSClient os = OSFactory.builderV3()
+                .endpoint(auth_url)
+                .credentials(userId, password)
+                .scopeToProject(projectIdent, domainIdent)
+                .authenticate();
+        return os;
+    }
 
     @RequestMapping(value = "/resep-upload", headers = "content-type=multipart/*", method = RequestMethod.POST)
-    @ResponseBody
-    public UploadResponseDto uploadProductImg(@RequestParam MultipartFile file)
-    {
-        String etag ="";
+    public ResponseEntity<UploadResponseDto> uploadProductImg(
+            @RequestParam MultipartFile file) {
         try {
             BufferedImage image = ImageIO.read(file.getInputStream());
             String name = "resep-" + new Timestamp(System.currentTimeMillis());;
             File outputFile = new File(name+".png");
             ImageIO.write(image, "png", outputFile);
+            
+            String etag = getObjectStorage().objectStorage().objects().put(
+                    Constants.CONTAINER_IMG, name, 
+                    Payloads.create(multipartToFile(file)));
 
-            String envServices = System.getenv("VCAP_SERVICES");
-
-            JSONParser parser = new JSONParser();
-            //Object obj = parser.parse(new FileReader("src/main/webapp/tokobat-api_VCAP_Services.json"));
-
-            //JSONObject jsonObject = (JSONObject) obj;
-
-            Object obj = parser.parse(envServices);
-            JSONObject jsonObject = (JSONObject) obj;
-            JSONArray vcapArray = (JSONArray) jsonObject.get("Object-Storage");
-            JSONObject vcap = (JSONObject) vcapArray.get(0);
-            JSONObject credentials = (JSONObject) vcap.get("credentials");
-            String userId = credentials.get("userId").toString();
-
-
-            log.info("VCAP userId  " + userId );
-
-            String password = credentials.get("password").toString();
-            String auth_url = credentials.get("auth_url").toString() + "/v3";
-            String domain = credentials.get("domainName").toString();
-            String project = credentials.get("project").toString();
-            Identifier domainIdent = Identifier.byName(domain);
-            Identifier projectIdent = Identifier.byName(project);
-
-            OSClient os = OSFactory.builderV3()
-                    .endpoint(auth_url)
-                    .credentials(userId, password)
-                    .scopeToProject(projectIdent, domainIdent)
-                    .authenticate();
-
-            SwiftAccount account = os.objectStorage().account().get();
-            etag = os.objectStorage().objects().put(Constants.CONTAINER_IMG, name, Payloads.create(multipartToFile(file)));
-
-            return new UploadResponseDto(Constants.DEFAULT_SUCCESS, Constants.SUCCESS_INDEX,name);
+            return new ResponseEntity<>(new UploadResponseDto(
+                    Constants.DEFAULT_SUCCESS, Constants.SUCCESS_INDEX, name),
+                    HttpStatus.OK);
         } catch(Exception ex) {
-
-            return new UploadResponseDto(etag, Constants.ERROR_INDEX);
-
+            return new ResponseEntity<>(new UploadResponseDto(
+                    ex.getMessage(), Constants.ERROR_INDEX),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-        //return new UploadResponseDto(Constants.ERROR_MESSAGE, Constants.ERROR_INDEX);
     }
     
     @RequestMapping(value = "/get-resep", headers = "Accept=image/jpeg, image/jpg,"
             + " image/png, image/gif", method = RequestMethod.GET)
     public @ResponseBody byte[] getImage(@RequestParam String imgPath){
-        try {
-            String envServices = System.getenv("VCAP_SERVICES");
-
-            JSONParser parser = new JSONParser();
-            Object obj = parser.parse(envServices);
-            JSONObject jsonObject = (JSONObject) obj;
-            JSONArray vcapArray = (JSONArray) jsonObject.get("Object-Storage");
-            JSONObject vcap = (JSONObject) vcapArray.get(0);
-            JSONObject credentials = (JSONObject) vcap.get("credentials");
-            String userId = credentials.get("userId").toString();
-
-            String password = credentials.get("password").toString();
-            String auth_url = credentials.get("auth_url").toString() + "/v3";
-            String domain = credentials.get("domainName").toString();
-            String project = credentials.get("project").toString();
-            Identifier domainIdent = Identifier.byName(domain);
-            Identifier projectIdent = Identifier.byName(project);
-
-            OSClient os = OSFactory.builderV3()
-                    .endpoint(auth_url)
-                    .credentials(userId, password)
-                    .scopeToProject(projectIdent, domainIdent)
-                    .authenticate();
-            SwiftAccount account = os.objectStorage().account().get();
-            
-            DLPayload pl = os.objectStorage().objects().download(Constants.CONTAINER_IMG, imgPath);
+        try {            
+            DLPayload pl = getObjectStorage().objectStorage().objects().download(Constants.CONTAINER_IMG, imgPath);
             BufferedImage img = ImageIO.read(pl.getInputStream());
             ByteArrayOutputStream bao = new ByteArrayOutputStream();
             ImageIO.write(img, "png", bao);
