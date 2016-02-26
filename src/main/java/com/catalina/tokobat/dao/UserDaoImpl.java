@@ -36,7 +36,7 @@ public class UserDaoImpl extends JpaDaoSupport implements UserDao {
     public User addNewUser(User user) {
 
         em = EntityManagerFactoryUtils.getTransactionalEntityManager(getJpaTemplate().getEntityManagerFactory());
-        em.merge(user);
+        user = em.merge(user);
         em.flush();
         em.close();
 
@@ -48,7 +48,7 @@ public class UserDaoImpl extends JpaDaoSupport implements UserDao {
     public User updateUser(User user) {
 
         em = EntityManagerFactoryUtils.getTransactionalEntityManager(getJpaTemplate().getEntityManagerFactory());
-        em.merge(user);
+        user = em.merge(user);
         em.flush();
         em.close();
 

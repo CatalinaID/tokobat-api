@@ -33,7 +33,7 @@ public class TransactionDaoImpl extends JpaDaoSupport implements TransactionDao 
     @Transactional(readOnly=false)
     public Transaction updateTransaction(Transaction trans) {
         em = EntityManagerFactoryUtils.getTransactionalEntityManager(getJpaTemplate().getEntityManagerFactory());
-        em.merge(trans);
+        trans = em.merge(trans);
         em.flush();
         em.close();
 
@@ -68,7 +68,7 @@ public class TransactionDaoImpl extends JpaDaoSupport implements TransactionDao 
     public Transaction add(Transaction transaction) {
         try {
             em = EntityManagerFactoryUtils.getTransactionalEntityManager(getJpaTemplate().getEntityManagerFactory());
-            em.merge(transaction);
+            transaction = em.merge(transaction);
             em.flush();
             em.close();
 
