@@ -327,19 +327,19 @@ public class TransactionController {
     {
         String etag ="";
         try {
-            //BufferedImage image = ImageIO.read(file.getInputStream());
+            BufferedImage image = ImageIO.read(file.getInputStream());
             String name = "resep-" + new Timestamp(System.currentTimeMillis());;
-            //File outputFile = new File(file);
-            //ImageIO.write(image, "png", outputFile);
+            File outputFile = new File(name+".png");
+            ImageIO.write(image, "png", outputFile);
 
-            //String envServices = System.getenv("VCAP_SERVICES");
+            String envServices = System.getenv("VCAP_SERVICES");
 
             JSONParser parser = new JSONParser();
             //Object obj = parser.parse(new FileReader("src/main/webapp/tokobat-api_VCAP_Services.json"));
 
             //JSONObject jsonObject = (JSONObject) obj;
 
-            Object obj = parser.parse(Constants.ENV_VAR);
+            Object obj = parser.parse(envServices);
             JSONObject jsonObject = (JSONObject) obj;
             JSONArray vcapArray = (JSONArray) jsonObject.get("Object-Storage");
             JSONObject vcap = (JSONObject) vcapArray.get(0);
