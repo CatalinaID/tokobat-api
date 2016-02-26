@@ -78,5 +78,13 @@ public class TransactionDaoImpl extends JpaDaoSupport implements TransactionDao 
         }
     }
 
+    @Override
+    public List<Transaction> listTransactionsByApotekAndStatus(
+            long apotekId, String status) {
+        return getJpaTemplate().find(
+                "from Transaction u where u.apotek.id=? and u.status=?",
+                apotekId, status);
+    }
+
 }
 

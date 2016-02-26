@@ -227,6 +227,18 @@ public class TransactionController {
         return res;
     }
 
+    @RequestMapping(method = RequestMethod.GET, value="/finished")
+    public @ResponseBody
+    ListTransactionApotekDto getAllFinishedOrdersForApotek(
+            @RequestParam long apotekId) {
+
+        List<Transaction> transList = 
+                transDAO.listTransactionsByApotekAndStatus(apotekId,
+                        Transaction.STATUS_FINISHED);
+        ListTransactionApotekDto res = new ListTransactionApotekDto(transList);
+        return res;
+    }
+
     @RequestMapping(method = RequestMethod.GET, value="/{orderId}/payment")
     public ResponseEntity<PaymentDto> payment (
             @PathVariable long orderId,

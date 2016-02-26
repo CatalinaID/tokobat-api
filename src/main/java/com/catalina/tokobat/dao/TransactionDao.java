@@ -15,4 +15,6 @@ public interface TransactionDao {
     List<Transaction> listTransactionsByUser(long userId);
     void deleteTransaction(long transId);
     Transaction add(Transaction transaction);
+    List<Transaction> listTransactionsByApotekAndStatus(
+            long apotekId, String status);
 }

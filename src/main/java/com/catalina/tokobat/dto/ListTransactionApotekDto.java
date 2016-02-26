@@ -21,7 +21,8 @@ public class ListTransactionApotekDto implements Serializable {
                     trans.getId(),
                     trans.getUser().getName(),
                     trans.isReadBy(),
-                    trans.getDateCreate()
+                    trans.getDateCreate(),
+                    trans.getStatus()
             );
             transactions.add(summary);
         }
@@ -33,13 +34,15 @@ public class ListTransactionApotekDto implements Serializable {
         public String senderName;
         public boolean read;
         public Calendar dateCreate;
+        public String status;
         
         public TransactionSummary(long transId, String senderName,
-                boolean read, Calendar dateCreate) {
+                boolean read, Calendar dateCreate, String status) {
             this.transId = transId;
             this.senderName = senderName;
             this.read = read;
             this.dateCreate = dateCreate;
+            this.status = status;
         }
     }
 }
