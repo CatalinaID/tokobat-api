@@ -41,4 +41,6 @@ public final class Constants {
             "    }\n"+
             "  } ]\n"+
             "}";
+    
+    public static final String CONTAINER_IMG = "tk-resep";
 }

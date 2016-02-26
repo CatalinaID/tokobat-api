@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.*;
+import org.openstack4j.model.common.DLPayload;
 
 /**
  *
@@ -314,7 +315,7 @@ public class TransactionController {
         return res;
     }
 
-    public File multipartToFile(MultipartFile multipart) throws IllegalStateException, IOException
+    private File multipartToFile(MultipartFile multipart) throws IllegalStateException, IOException
     {
         File convFile = new File( multipart.getOriginalFilename());
         multipart.transferTo(convFile);
@@ -363,7 +364,7 @@ public class TransactionController {
                     .authenticate();
 
             SwiftAccount account = os.objectStorage().account().get();
-            etag = os.objectStorage().objects().put("tk-resep", name, Payloads.create(multipartToFile(file)));
+            etag = os.objectStorage().objects().put(Constants.CONTAINER_IMG, name, Payloads.create(multipartToFile(file)));
 
             return new UploadResponseDto(Constants.DEFAULT_SUCCESS, Constants.SUCCESS_INDEX,name);
         } catch(Exception ex) {
@@ -374,5 +375,39 @@ public class TransactionController {
 
         //return new UploadResponseDto(Constants.ERROR_MESSAGE, Constants.ERROR_INDEX);
     }
+    
+    @RequestMapping(value = "/get-resep", headers = "Accept=image/jpeg, image/jpg,"
+            + " image/png, image/gif", method = RequestMethod.GET)
+    public @ResponseBody BufferedImage getImage(@RequestParam String imgPath){
+        try {
+            String envServices = System.getenv("VCAP_SERVICES");
 
+            JSONParser parser = new JSONParser();
+            Object obj = parser.parse(envServices);
+            JSONObject jsonObject = (JSONObject) obj;
+            JSONArray vcapArray = (JSONArray) jsonObject.get("Object-Storage");
+            JSONObject vcap = (JSONObject) vcapArray.get(0);
+            JSONObject credentials = (JSONObject) vcap.get("credentials");
+            String userId = credentials.get("userId").toString();
+
+            String password = credentials.get("password").toString();
+            String auth_url = credentials.get("auth_url").toString() + "/v3";
+            String domain = credentials.get("domainName").toString();
+            String project = credentials.get("project").toString();
+            Identifier domainIdent = Identifier.byName(domain);
+            Identifier projectIdent = Identifier.byName(project);
+
+            OSClient os = OSFactory.builderV3()
+                    .endpoint(auth_url)
+                    .credentials(userId, password)
+                    .scopeToProject(projectIdent, domainIdent)
+                    .authenticate();
+
+            SwiftAccount account = os.objectStorage().account().get();
+            DLPayload pl = os.objectStorage().objects().download(Constants.CONTAINER_IMG, imgPath);
+            return ImageIO.read(pl.getInputStream());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
